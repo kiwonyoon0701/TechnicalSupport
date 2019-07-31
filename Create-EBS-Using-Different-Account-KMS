@@ -49,7 +49,7 @@ Attach Policy :
   Policy-External-Account-KMS-664695030410-AP01-KEY
   AmazonEC2FullAccess // Purpose for creating EBS with KMS
 
-- DO 'aws configure' for new user kmstest01
+- DO 'aws configure' for new user kmstest01 (profile name : kms)
 
 
 kiwony@kiwonymac.com:/Users/kiwony> aws sts get-caller-identity --profile kms
