@@ -1,0 +1,109 @@
+https://docs.aws.amazon.com/ko_kr/kms/latest/developerguide/key-policy-modifying.html#key-policy-modifying-external-accounts
+
+Create EBS using diffrent account's KMS KEY
+
+KMS Origin Account : 664695030410
+KMS Request Account : 159770541686
+
+- 664695030410
+Create CMK
+Alias : AWSDC-APE2-KMS-664695030410-AP01-KEY
+Other AWS accounts : 159770541686
+Identify ARN : arn:aws:kms:ap-northeast-2:664695030410:key/503ccbee-e6c2-4b90-8e00-38b2597579f7
+
+-159770541686
+Create New Policy : Policy-External-Account-KMS-664695030410-AP01-KEY
+
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowUseOfCMKInAccount664695030410",
+      "Effect": "Allow",
+      "Action": [
+        "kms:Encrypt",
+        "kms:Decrypt",
+        "kms:ReEncrypt*",
+        "kms:GenerateDataKey*",
+        "kms:DescribeKey"
+      ],
+      "Resource": "arn:aws:kms:ap-northeast-2:664695030410:key/503ccbee-e6c2-4b90-8e00-38b2597579f7"
+    },
+    {
+      "Sid": "AllowUseofCMKToCreateEncryptedResourcesInAccount664695030410",
+      "Effect": "Allow",
+      "Action": "kms:CreateGrant",
+      "Resource": "arn:aws:kms:ap-northeast-2:664695030410:key/503ccbee-e6c2-4b90-8e00-38b2597579f7",
+      "Condition": {
+        "Bool": {
+          "kms:GrantIsForAWSResource": true
+        }
+      }
+    }
+  ]
+}
+
+Create IAM user : kmstest01
+Attach Policy : 
+  AWSKeyManagementServicePowerUser
+  Policy-External-Account-KMS-664695030410-AP01-KEY
+  AmazonEC2FullAccess // Purpose for creating EBS with KMS
+
+- DO 'aws configure' for new user kmstest01
+
+
+kiwony@kiwonymac.com:/Users/kiwony> aws sts get-caller-identity --profile kms
+{
+    "Account": "159770541686",
+    "UserId": "AIDASKMYQ7Z3IS6HGAXQU",
+    "Arn": "arn:aws:iam::159770541686:user/kmstest01"
+}
+
+kiwony@kiwonymac.com:/Users/kiwony> aws kms describe-key --key-id arn:aws:kms:ap-northeast-2:664695030410:key/503ccbee-e6c2-4b90-8e00-38b2597579f7 --region ap-northeast-2 --profile kms
+{
+    "KeyMetadata": {
+        "Origin": "AWS_KMS",
+        "KeyId": "503ccbee-e6c2-4b90-8e00-38b2597579f7",
+        "Description": "AWSDC-APE2-KMS-664695030410-AP01-KEY",
+        "KeyManager": "CUSTOMER",
+        "Enabled": true,
+        "KeyUsage": "ENCRYPT_DECRYPT",
+        "KeyState": "Enabled",
+        "CreationDate": 1564542363.322,
+        "Arn": "arn:aws:kms:ap-northeast-2:664695030410:key/503ccbee-e6c2-4b90-8e00-38b2597579f7",
+        "AWSAccountId": "664695030410"
+    }
+}
+
+kiwony@kiwonymac.com:/Users/kiwony> aws ec2 create-volume --size 10 --region ap-northeast-2 --availability-zone ap-northeast-2a --volume-type GP2 --encrypted --kms-key-id arn:aws:kms:ap-northeast-2:664695030410:key/503ccbee-e6c2-4b90-8e00-38b2597579f7 --profile kms
+{
+    "AvailabilityZone": "ap-northeast-2a",
+    "Tags": [],
+    "Encrypted": true,
+    "VolumeType": "gp2",
+    "VolumeId": "vol-0129607eb54736890",
+    "State": "creating",
+    "KmsKeyId": "arn:aws:kms:ap-northeast-2:664695030410:key/503ccbee-e6c2-4b90-8e00-38b2597579f7",
+    "SnapshotId": "",
+    "Iops": 100,
+    "CreateTime": "2019-07-31T03:24:01.000Z",
+    "Size": 10
+}
+
+kiwony@kiwonymac.com:/Users/kiwony> aws ec2 describe-volumes --filters "Name=volume-id,Values=vol-0129607eb54736890" --output table --profile kms
+------------------------------------------------------------------------------------------------------------
+|                                              DescribeVolumes                                             |
++----------------------------------------------------------------------------------------------------------+
+||                                                 Volumes                                                ||
+|+------------------+-------------------------------------------------------------------------------------+|
+||  AvailabilityZone|  ap-northeast-2a                                                                    ||
+||  CreateTime      |  2019-07-31T03:24:01.059Z                                                           ||
+||  Encrypted       |  True                                                                               ||
+||  Iops            |  100                                                                                ||
+||  KmsKeyId        |  arn:aws:kms:ap-northeast-2:664695030410:key/503ccbee-e6c2-4b90-8e00-38b2597579f7   ||
+||  Size            |  10                                                                                 ||
+||  SnapshotId      |                                                                                     ||
+||  State           |  available                                                                          ||
+||  VolumeId        |  vol-0129607eb54736890                                                              ||
+||  VolumeType      |  gp2                                                                                ||
+|+------------------+-------------------------------------------------------------------------------------+|
