@@ -1,3 +1,64 @@
+-- Custom Metric Demo
+1. Create Policy and Role
+- Policy
+Service : CloudWatch 
+Access level : Write - PutMetricData
+Name : PutMetricPolicyOnly01
+- Role
+Name : PutMetricOnlyRole01
+
+2. Assign Role to Oracle Instance
+
+3. Connect to Oracle
+
+4. Show postcutommetric.py and edit
+root@oracle11g:/root# cat postcustommetric.py 
+import boto3
+import random
+client = boto3.client('cloudwatch', region_name='ap-northeast-2')
+#client.put_metric_data(namespace="LGCNS70in70",name="testmetric",unit="Count",value=3.0)
+value = float(random.randint(1,100))
+print(value)
+# Put custom metrics
+client.put_metric_data(
+    MetricData=[
+        {
+            'MetricName': 'LGCNS70in70-Metric',
+            'Dimensions': [
+                {
+                    'Name': 'Instance Name',
+                    'Value': 'i-12345'
+                },
+            ],
+            'Unit': 'None',
+            'Value': value
+        },
+    ],
+    Namespace='LGCNS70in70NameSpace'
+)
+
+5. replace Namespace
+:%s/LGCNS70in70/LGCNS70in70-2nd/g
+
+6. 
+root@oracle11g:/root# pip install boto3
+
+7. 
+root@oracle11g:/root# while true
+> do
+> python postcustommetric.py 
+> sleep 1
+> done
+
+8. cloudwatch -> metrics -> 2ndNameSpace -> Graphed metrics
+1minute, maximum
+
+
+
+
+
+Connect to Oracle
+
 
 
 <hr/>
