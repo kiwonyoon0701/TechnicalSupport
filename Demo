@@ -59,8 +59,6 @@ root@oracle11g:/root# while true
 Number
 
 
-
-
 --------------------------------
 -- CloudWatch Logs Demo
 --------------------------------
@@ -169,4 +167,62 @@ root@ip-172-31-17-17:/var/log# echo 'ORA-00600' >> application.log
 >> 기다리면 Alarm 발생
 
 Email 확인
+
+
+--------------------------------
+-- Apache Log CloudWatch Logs Demo
+--------------------------------
+1. service awslogs stop
+root@ip-172-31-27-12:/var/log# service awslogs stop
+
+2. edit configuration file to point apache access log
+root@ip-172-31-27-12:/var/log# vi /etc/awslogs/awslogs.conf
+root@ip-172-31-27-12:/var/log# cat /etc/awslogs/awslogs.conf
+[general]
+state_file = /var/lib/awslogs/agent-state
+[apache_test_logs22]
+region = ap-northeast-2
+datetime_format = %b %d %H:%M:%S
+file = /var/log/httpd/access_log
+buffer_duration = 5000
+log_stream_name = {instance_id}
+initial_position = start_of_file
+log_group_name = apache_test_logs22
+
+3. service awslogs start
+root@ip-172-31-27-12:/var/log# service awslogs restart
+
+4. curl
+kiwony@kiwonymac.com:/Users/kiwony> curl http://15.164.50.100
+
+5. show access_log
+
+6. cloudwatch -> logs 
+
+7. Create Filter
+Filter Pattern
+[ip, user, username, timestamp, request, status_code = 4*, bytes]
+
+Create Alarm
+Apache400Error
+Apache400Error-Topic01
+
+8. Accept Notification
+
+9. 
+watch -n 1 curl http://15.164.50.100
+
+watch -n 1 curl http://15.164.50.100/a.html
+
+10. View Metric
+
+11. View Alarm
+
+12. Check email notification
+
+
+[ip, user, username, timestamp, request, status_code = 5*, bytes]
+
+echo '54.239.119.16 - - [01/Aug/2019:02:00:18 +0000] "GET / HTTP/1.1" 501 737 "-" "curl/7.54.0"' >> /var/log/httpd/access_log
+
 
