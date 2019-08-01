@@ -1,4 +1,6 @@
+--------------------------------
 -- Custom Metric Demo
+--------------------------------
 1. Create Policy and Role
 - Policy
 Service : CloudWatch 
@@ -53,15 +55,18 @@ root@oracle11g:/root# while true
 8. cloudwatch -> metrics -> 2ndNameSpace -> Graphed metrics
 1minute, maximum
 
+9. Actions -> Add to dashboard -> LGCNS70in702nd
+Number
 
 
 
 
-Connect to Oracle
+--------------------------------
+-- CloudWatch Logs Demo
+--------------------------------
 
-
-
-<hr/>
+1. Create Policy
+Policy : AWSDC-APNE2-IAM-PO-Cloudwatch-Logs
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -81,63 +86,78 @@ Connect to Oracle
  ]
 }
 
-
-Policy : AWSDC-APNE2-IAM-PO-Cloudwatch-Logs
-
+2. Create Role
 Role : AWSDC-APNE2-IAM-RO-Cloudwatch-Logs
 
 
 
-Assign Role to EC2
+3. Assign Role to EC2
 
+4. Install CloudWatch logs agent
 sudo yum install -y awslogs
 
-ec2-user@ip-172-31-25-217:/home/ec2-user> sudo vi /etc/awslogs/awscli.conf 
-ec2-user@ip-172-31-25-217:/home/ec2-user> sudo cat  /etc/awslogs/awscli.conf
+5. Edit configuration file
+root@ip-172-31-27-12:/root# vi /etc/awslogs/awscli.conf 
+root@ip-172-31-27-12:/root# cat /etc/awslogs/awscli.conf 
 [plugins]
 cwlogs = cwlogs
 [default]
 region = ap-northeast-2
 
+root@ip-172-31-27-12:/root# vi /etc/awslogs/awslogs.conf
+:%s/application_logs/apache_test3_logs/g
 
-ec2-user@ip-172-31-25-217:/home/ec2-user> sudo cat /etc/awslogs/awslogs.conf
+root@ip-172-31-27-12:/root# cat /etc/awslogs/awslogs.conf
 [general]
 state_file = /var/lib/awslogs/agent-state
-[application_logs]
+[apache_test3_logs]
 region = ap-northeast-2
 datetime_format = %b %d %H:%M:%S
 file = /var/log/application.log
 buffer_duration = 5000
 log_stream_name = {instance_id}
 initial_position = start_of_file
-log_group_name = application_logs
+log_group_name = apache_test3_logs
 
+6. Start awslogs service
+root@ip-172-31-27-12:/root# service awslogs start
+Starting awslogs:                                          [  OK  ]
 
-ec2-user@ip-172-31-25-217:/home/ec2-user> sudo service awslogs start
-Starting awslogs:   
+7. 
+root@ip-172-31-27-12:/root# cd /var/log
+root@ip-172-31-27-12:/var/log# echo 'Staring application!!' > application.log
 
-ec2-user@ip-172-31-25-217:/home/ec2-user> sudo su -
-[root@ip-172-31-25-217 ~]# cd /var/log
-[root@ip-172-31-25-217 log]# echo 'Staring application!!' > application.log
-[root@ip-172-31-25-217 log]# cat application.log
-Staring application!!
-[root@ip-172-31-25-217 log]# echo '2nd line log' >> application.log
+8. CloudWatch LOGS 확인 
+CloudWatch - Logs - apache_test3_logs
 
-CloudWatch LOGS 확인 
+9. 
+root@ip-172-31-27-12:/var/log# echo '2nd line log' >> application.log
 
-root@ip-172-31-17-17:/var/log# cat dummy.sh 
+10. 
+root@ip-172-31-27-12:/var/log# cat dummy.sh 
 for ((i=0;i<10;i++)); do
-echo $i >> application.log
+echo $i " Started" >> /var/log/application.log
 done
+root@ip-172-31-27-12:/var/log# chmod u+x dummy.sh 
+root@ip-172-31-27-12:/var/log# echo 'ORA-00600' >> application.log 
+root@ip-172-31-27-12:/var/log# echo 'ORA-00600' >> application.log 
+root@ip-172-31-27-12:/var/log# echo 'ORA-00600' >> application.log 
+
+
+11. CloudWatch - logs -> Create Metric Filter
+Filter Pattern : 0
+Filter Pattern : ORA-00600
+
+root@ip-172-31-27-12:/var/log# echo 'ORA-00600' >> application.log 
+
+12. Create ALarm
+Period : 1min
+2
 
 Filter DEMO
 Create Filter - 1분 주기
 Creat Alarm
 Accept notification
-
-for ((i=0;i<100;i++)); do
-echo $i >> application.log
-done
 
 root@ip-172-31-17-17:/var/log# echo 'ORA-00600' >> application.log 
 root@ip-172-31-17-17:/var/log# echo 'ORA-00600' >> application.log 
@@ -148,4 +168,5 @@ root@ip-172-31-17-17:/var/log# echo 'ORA-00600' >> application.log
 
 >> 기다리면 Alarm 발생
 
+Email 확인
 
