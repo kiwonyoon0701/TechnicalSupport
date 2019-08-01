@@ -228,7 +228,7 @@ echo '54.239.119.16 - - [01/Aug/2019:02:00:18 +0000] "GET / HTTP/1.1" 501 737 "-
 
 
 --------------------------------
--- EC2 Shutdown Demo
+-- EC2 Autoscaling Demo
 --------------------------------
 1. Launch configuration
 
@@ -238,6 +238,27 @@ echo '54.239.119.16 - - [01/Aug/2019:02:00:18 +0000] "GET / HTTP/1.1" 501 737 "-
 
 4. Connect 10-AS-TEST
 dd if=/dev/zero of=/dev/null
+
+
+--------------------------------
+-- S3 Monitoring Demo
+--------------------------------
+1. Target s3 : shared-kiwony
+Management -> Metrics
+Size -> NumberOfObjects  -> 2weeks -> 6wekks로 변경해서 보여줌
+
+2. NumberOfObjects -> View in CloudWatch
+Sum
+1min
+
+3. 
+kiwony@kiwonymac.com:/Users/kiwony/temp> cd lgcns
+kiwony@kiwonymac.com:/Users/kiwony/temp/lgcns> for ((i=0;i<10;i++)); do
+echo $i > $i
+done
+kiwony@kiwonymac.com:/Users/kiwony/temp/lgcns> aws s3 cp . s3://shared-kiwony --recursive
+
+
 
 
 
